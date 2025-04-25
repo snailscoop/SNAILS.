@@ -1,0 +1,41 @@
+---
+version: "2.0"
+
+services:
+  nostr-feed:
+    image: ${DOCKER_IMAGE_TAG}
+    expose:
+      - port: 80
+        as: 80
+        to:
+          - global: true
+        accept:
+          - "nostr-feed.localhost"
+
+profiles:
+  compute:
+    nostr-feed:
+      resources:
+        cpu:
+          units: 0.5
+        memory:
+          size: 512Mi
+        storage:
+          size: 1Gi
+  placement:
+    akash:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf:
+          - "akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63"
+      pricing:
+        nostr-feed:
+          denom: uakt
+          amount: 1000
+
+deployment:
+  nostr-feed:
+    akash:
+      profile: nostr-feed
+      count: 1 

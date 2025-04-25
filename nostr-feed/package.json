@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "start": "npx vite",
+    "dev": "vite --port 3001 --strictPort",
+    "dev3000": "vite --port 3000 --strictPort --host localhost",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -17,10 +17,13 @@
     "nostr-tools": "^2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.5.2",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.5.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/node": "^22.14.1",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
@@ -32,4 +35,4 @@
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.1"
   }
-} 
+}
