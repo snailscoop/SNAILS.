@@ -3,7 +3,7 @@
 # Make script exit on any error
 set -e
 
-echo "🚀 Starting snails.tube deployment"
+echo "🚀 Starting snails.wiki deployment"
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -29,7 +29,7 @@ docker-compose up -d --build
 
 # Check if the containers are running
 if [ $? -eq 0 ]; then
-    echo "✅ snails.tube is now running!"
+    echo "✅ snails.wiki is now running!"
     echo "🌐 You can access it at http://localhost or your server's domain"
 else
     echo "❌ Deployment failed. Check the Docker logs for more information."

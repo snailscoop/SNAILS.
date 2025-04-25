@@ -10,7 +10,8 @@ services:
         to:
           - global: true
         accept:
-          - "nostr-feed.localhost"
+          - "snails.wiki"
+          - "www.snails.wiki"
 
 profiles:
   compute:
