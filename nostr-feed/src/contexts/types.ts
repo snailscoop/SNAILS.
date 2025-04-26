@@ -47,6 +47,9 @@ export interface NostrContextType {
     tags?: string[]
   ) => Promise<NDKEvent | null>;
   
+  // Video functionality
+  fetchVideos: (pubkey: string, limit?: number) => Promise<any[]>;
+  
   // NIP-51: Lists
   createList: (
     name: string,

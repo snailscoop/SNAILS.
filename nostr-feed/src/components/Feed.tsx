@@ -4,6 +4,9 @@ import { useNostrContext } from '../contexts/useNostrContext';
 import { Note } from './Note';
 import { RepostNote } from './RepostNote';
 
+// Cache for post data across feeds
+const feedCache = new Map<string, NDKEvent[]>();
+
 interface FeedProps {
   filter?: NDKFilter;
   limit?: number;
@@ -17,7 +20,13 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
   const subscriptionRef = useRef<NDKSubscription | null>(null);
   const timeoutIdsRef = useRef<NodeJS.Timeout[]>([]);
   const eventsRef = useRef<NDKEvent[]>([]);
-  const filterRef = useRef(filter);
+  const hasLoadedRef = useRef<boolean>(false);
+  
+  // Generate a unique cache key based on the filter
+  const cacheKey = useMemo(() => {
+    const filterKey = JSON.stringify(filter);
+    return `${filterKey}-${limit}`;
+  }, [filter, limit]);
   
   // Use useMemo for filter to prevent unnecessary re-renders
   const combinedFilter = useMemo(() => {
@@ -41,9 +50,6 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
       const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 86400);
       result.since = thirtyDaysAgo;
     }
-    
-    // Store the filter in a ref to compare in the effect
-    filterRef.current = filter;
     
     console.log('Combined filter:', result);
     return result;
@@ -78,9 +84,13 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
       // Return at most 'limit' events
       const result = newEvents.slice(0, limit);
       eventsRef.current = result;
+      
+      // Update the cache
+      feedCache.set(cacheKey, result);
+      
       return result;
     });
-  }, [limit]);
+  }, [limit, cacheKey]);
   
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -95,14 +105,10 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
     }
   }, []);
 
+  // This useEffect handles the one-time feed loading
   useEffect(() => {
-    // Skip effect if the filter reference hasn't actually changed
-    // This prevents unnecessary resubscriptions on profile pages
-    const isAuthorFilter = !!filter.authors;
-    const hasFilterChanged = JSON.stringify(filterRef.current) !== JSON.stringify(filter);
-    
-    if (subscriptionRef.current && isAuthorFilter && !hasFilterChanged) {
-      console.log('Skipping resubscription, filter unchanged');
+    // Skip if we've already loaded data for this component instance
+    if (hasLoadedRef.current) {
       return;
     }
     
@@ -110,6 +116,17 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
     
     const fetchEvents = async () => {
       if (!isMounted) return;
+      
+      // First check if we have cached data
+      if (feedCache.has(cacheKey)) {
+        console.log('Using cached feed data:', cacheKey);
+        const cachedEvents = feedCache.get(cacheKey)!;
+        setEvents(cachedEvents);
+        setLoading(false);
+        eventsRef.current = cachedEvents;
+        hasLoadedRef.current = true;
+        return;
+      }
       
       // Clean up previous resources
       cleanup();
@@ -134,6 +151,7 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
           const loadingTimeoutId = setTimeout(() => {
             if (isMounted) {
               setLoading(false);
+              hasLoadedRef.current = true;
             }
           }, 5000); // Shorter timeout to avoid freezing
           
@@ -152,12 +170,14 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
         } else {
           // No subscription was created, so stop loading
           setLoading(false);
+          hasLoadedRef.current = true;
         }
       } catch (error) {
         console.error('Failed to fetch events:', error);
         if (isMounted) {
           setLoading(false);
           setError('Failed to load feed');
+          hasLoadedRef.current = true;
         }
       }
     };
@@ -169,7 +189,7 @@ export function Feed({ filter = {}, limit = 50 }: FeedProps) {
       isMounted = false;
       cleanup();
     };
-  }, [cleanup, subscribeToNotes, handleEvent, filter, limit, combinedFilter, authorsFilter]);
+  }, [cleanup, subscribeToNotes, handleEvent, combinedFilter, authorsFilter, cacheKey]);
 
   // Listen for refresh events from the header refresh button
   useEffect(() => {

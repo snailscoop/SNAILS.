@@ -835,49 +835,10 @@ class NostrService {
   // Get a specific event by ID
   async getEvent(eventId: string): Promise<NDKEvent | null> {
     try {
-      // Check local cache first
-      const cachedEvent = await db.events.get(eventId);
-      if (cachedEvent) {
-        const event = new NDKEvent(this.ndk);
-        event.id = cachedEvent.id;
-        event.pubkey = cachedEvent.pubkey;
-        event.kind = cachedEvent.kind;
-        event.content = cachedEvent.content;
-        event.tags = cachedEvent.tags;
-        event.created_at = cachedEvent.created_at;
-        event.sig = cachedEvent.sig;
-        return event;
-      }
-      
-      // If not in cache, fetch from relays
-      const filter: NDKFilter = {
-        ids: [eventId],
-        limit: 1
-      };
-      
-      const events = await this.ndk.fetchEvents(filter);
-      if (!events || events.size === 0) {
-        return null;
-      }
-      
-      const event = Array.from(events)[0];
-      
-      // Cache the event
-      const nostrEvent: NostrEvent = {
-        id: event.id,
-        pubkey: event.pubkey,
-        created_at: event.created_at!,
-        kind: event.kind!,
-        tags: event.tags,
-        content: event.content,
-        sig: event.sig!
-      };
-      
-      await db.events.put(nostrEvent);
-      
+      const event = await this.ndk.fetchEvent(eventId);
       return event;
     } catch (error) {
-      console.error('Failed to get event:', error);
+      console.error('Failed to fetch event:', error);
       return null;
     }
   }
@@ -2198,6 +2159,18 @@ class NostrService {
       return following;
     } catch (error) {
       console.error('Error fetching following list:', error);
+      return [];
+    }
+  }
+
+  // Get multiple events based on a filter
+  async getEvents(filter: NDKFilter): Promise<NDKEvent[]> {
+    try {
+      const events = await this.ndk.fetchEvents(filter);
+      // Convert Set to Array
+      return Array.from(events);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
       return [];
     }
   }

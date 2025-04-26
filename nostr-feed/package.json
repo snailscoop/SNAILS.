@@ -13,6 +13,7 @@
   "dependencies": {
     "@nostr-dev-kit/ndk": "2.14.0",
     "@types/react-router-dom": "^5.3.3",
+    "date-fns": "^4.1.0",
     "dexie": "^4.0.11",
     "nostr-tools": "^2",
     "react": "^19.0.0",
