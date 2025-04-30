@@ -49,7 +49,13 @@ export function SlideNav({ isOpen, toggleNav }: SlideNavProps) {
             <span className="nav-text">SNAILS.feed</span>
           </Link>
           <Link to="/snailspub" className="nav-item" onClick={toggleNav}>
-            <span className="nav-icon">📚</span>
+            <span className="nav-icon">
+              <img 
+                src="/bomb.png" 
+                alt="SNAILS.pub" 
+                style={{ width: '24px', height: '24px', objectFit: 'contain' }} 
+              />
+            </span>
             <span className="nav-text">SNAILS.pub</span>
           </Link>
           <Link to="/snailstube" className="nav-item" onClick={toggleNav}>

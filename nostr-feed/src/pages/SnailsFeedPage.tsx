@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Feed } from '../components/Feed';
 import { useNostrContext } from '../contexts/useNostrContext';
 import { ProfileCard } from '../components/ProfileCard';
+import { SiteHeader } from '../components/SiteHeader';
 import { RecommendedFollows } from '../components/RecommendedFollows';
 import { TrendingHashtags } from '../components/TrendingHashtags';
 
@@ -202,6 +203,7 @@ export function SnailsFeedPage() {
     <div className="snailsfeed-container">
       <div className="snailsfeed-sidebar left">
         <div className="snailsfeed-section">
+          <SiteHeader />
           <ProfileCard />
         </div>
       </div>

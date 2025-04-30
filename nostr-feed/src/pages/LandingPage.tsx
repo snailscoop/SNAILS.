@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef } from 'react';
 import '../App.css';
+import { SnailsCard } from '../components/SnailsCard';
+import { UserNotesList } from '../components/UserNotesList';
+import { UserVideosList } from '../components/UserVideosList';
+import { UserBlogsList } from '../components/UserBlogsList';
+import { useNostrContext } from '../contexts/useNostrContext';
 
 export function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { decodePublicKey } = useNostrContext();
+  const npub = 'npub1aj8kwq97s04dnw4du0gelatz966xuhp57g906ndylj2r07e2ganqx6hcm4';
+  const pubkey = decodePublicKey(npub);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -108,40 +116,60 @@ export function LandingPage() {
       />
       
       <div className="landing-content">
-        <div className="landing-header">
-          <h1 className="landing-title">SNAILS.feed</h1>
-          <p className="landing-subtitle">A decentralized social network built on the Nostr protocol</p>
-        </div>
-        
-        <div className="landing-features">
-          <div className="feature-card">
-            <div className="feature-icon-container">
-              <div className="feature-icon">🔒</div>
+        <div className="new-layout-container">
+          {/* Left column with SnailsCard and feature cards below it */}
+          <div className="left-column">
+            <div className="snails-card-container">
+              <SnailsCard defaultNpub={npub} />
             </div>
-            <h3>Secure & Private</h3>
-            <p>Your data belongs to you with cryptographic security and privacy controls</p>
+            
+            <div className="feature-cards-container">
+              <div className="feature-card">
+                <div className="feature-icon-container">
+                  <div className="feature-icon">
+                    <img src="/bomb.png" alt="Bomb" className="feature-icon-img" />
+                  </div>
+                </div>
+                <h3>SNAILS.pub</h3>
+                {pubkey && (
+                  <div className="blogs-container">
+                    <UserBlogsList pubkey={pubkey} limit={3} className="landing-blogs-list" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="feature-card">
+                <div className="feature-icon-container">
+                  <div className="feature-icon">
+                    <img src="/charged.png" alt="Charged" className="feature-icon-img" />
+                  </div>
+                </div>
+                <h3>SNAILS.tube</h3>
+                {pubkey && (
+                  <div className="videos-container">
+                    <UserVideosList pubkey={pubkey} limit={3} className="landing-videos-list" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           
-          <div className="feature-card">
-            <div className="feature-icon-container">
-              <div className="feature-icon">🌐</div>
+          {/* Right column with SNAILS.feed card */}
+          <div className="right-column">
+            <div className="feature-card interoperable-card">
+              <div className="pepe-container">
+                <img src="/pepe.png" alt="Pepe" className="pepe-image" />
+              </div>
+              <h3>SNAILS.feed</h3>
+              
+              {pubkey && (
+                <div className="notes-container">
+                  <UserNotesList pubkey={pubkey} limit={5} className="landing-notes-list" />
+                </div>
+              )}
             </div>
-            <h3>Censorship Resistant</h3>
-            <p>Express yourself freely on a platform designed to resist central control</p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon-container">
-              <div className="feature-icon">⚡</div>
-            </div>
-            <h3>Interoperable</h3>
-            <p>Seamlessly connect with any client in the growing Nostr ecosystem</p>
           </div>
         </div>
-        
-        <Link to="/snailsfeed" className="get-started-button">
-          Enter The Network
-        </Link>
       </div>
     </div>
   );

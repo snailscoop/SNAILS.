@@ -256,81 +256,68 @@ export function BlogNote({ event }: BlogNoteProps) {
     return contentEmbeds.length > 0;
   }, [contentEmbeds]);
 
+  // Handle read more click
   const handleReadMoreClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsModalOpen(true);
   };
-  
+
+  // Close the modal
   const closeModal = () => {
     setIsModalOpen(false);
   };
 
   return (
-    <div className="blog-note">
-      <div className="blog-header">
-        {profile ? (
-          <div className="profile-info">
-            <img 
-              src={profile.picture || '/default-avatar.png'} 
-              alt={profile.name || 'User'} 
-              className="profile-picture" 
-            />
-            <div className="profile-details">
-              <div className="profile-name-container">
-                <span className="profile-name">{profile.displayName || profile.name || 'Anonymous'}</span>
-                {verified && <span className="verified-badge">✓</span>}
+    <>
+      <div className="note-card">
+        <div className="note-header">
+          <div className="avatar">
+            {profile?.picture ? (
+              <img src={profile.picture} alt={profile.displayName || profile.name || 'User'} />
+            ) : (
+              <div className="default-avatar">
+                {(profile?.displayName || profile?.name || 'U').charAt(0).toUpperCase()}
               </div>
-              <a href={`/profile/${npub}`} className="profile-handle">
-                @{profile.name || npub?.substring(0, 8)}
-              </a>
-            </div>
+            )}
           </div>
-        ) : (
-          <div className="profile-info">
-            <img src="/default-avatar.png" alt="User" className="profile-picture" />
-            <div className="profile-details">
-              <span className="profile-name">Anonymous</span>
-              <span className="profile-handle">@{npub?.substring(0, 8)}</span>
-            </div>
-          </div>
-        )}
-        <span className="blog-time">{timeAgo}</span>
-      </div>
-      
-      <div className="blog-content">
-        <h2 className="blog-title">{title}</h2>
-        {featuredImage && (
-          <div className="blog-featured-image">
-            <img src={featuredImage} alt={title} />
-          </div>
-        )}
-        <div className="blog-summary" dangerouslySetInnerHTML={{ __html: summary }} />
-        
-        {/* Add embed previews */}
-        {hasEmbeds && (
-          <div className="blog-embeds-preview">
-            <ContentEmbeds content={event.content} maxEmbeds={2} removeUrls={true} />
-          </div>
-        )}
-        
-        <div className="blog-actions">
-          <button className="read-more-button" onClick={handleReadMoreClick}>
-            Read more
-          </button>
           
-          {extractedTags.length > 0 && (
-            <div className="blog-tags">
-              {extractedTags.slice(0, 3).map((tag, index) => (
-                <span key={index} className="blog-tag">#{tag}</span>
-              ))}
-              {extractedTags.length > 3 && <span className="more-tags">+{extractedTags.length - 3}</span>}
+          <div className="user-info">
+            <div className="name-container">
+              <span className="display-name">
+                {profile?.displayName || profile?.name || npub.substring(0, 8)}
+              </span>
+              {verified && (
+                <span className="verified-badge" title="Verified">✓</span>
+              )}
+            </div>
+            <div className="username">
+              {profile?.nip05 || `@${npub.substring(0, 8)}...`}
+            </div>
+          </div>
+          
+          <div className="timestamp">{timeAgo}</div>
+        </div>
+        
+        <div className="note-content">
+          <h3 style={{ 
+            fontSize: '1.3rem', 
+            marginBottom: '0.5rem', 
+            color: 'var(--accent-color)',
+            textShadow: '0 0 5px rgba(248, 166, 92, 0.3)'
+          }}>
+            {title}
+          </h3>
+          
+          {featuredImage && (
+            <div className="blog-featured-image">
+              <img src={featuredImage} alt={title} />
             </div>
           )}
+          
+          <p>{summary}</p>
         </div>
-      </div>
-      
-      <div className="blog-footer">
-        <div className="blog-actions">
+        
+        <div className="note-actions">
           <button className="action-button">
             <ReplyIcon />
           </button>
@@ -340,15 +327,17 @@ export function BlogNote({ event }: BlogNoteProps) {
           <button className="action-button">
             <LikeIcon />
           </button>
+          <button onClick={handleReadMoreClick} className="action-button read-more">
+            Read More
+          </button>
           <button className="action-button">
             <ShareIcon />
           </button>
         </div>
       </div>
       
-      {/* The blog post modal */}
       {isModalOpen && (
-        <BlogModal
+        <BlogModal 
           isOpen={true}
           onClose={closeModal}
           blogData={nip23Event}
@@ -360,6 +349,6 @@ export function BlogNote({ event }: BlogNoteProps) {
           publishedAt={publishedAt || timeAgo}
         />
       )}
-    </div>
+    </>
   );
 } 

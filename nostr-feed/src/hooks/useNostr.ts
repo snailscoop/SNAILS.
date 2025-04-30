@@ -208,6 +208,67 @@ export function useNostr(explicitRelayUrls?: string[]) {
     }
   };
 
+  // Fetch videos for a user
+  const fetchVideos = async (pubkey: string, limit = 5) => {
+    try {
+      const filter = {
+        kinds: [1, 30023], // Include regular notes and long-form content that might have videos
+        authors: [pubkey],
+        limit: limit * 2, // Fetch more to filter for video content
+        since: Math.floor(Date.now() / 1000) - (90 * 86400) // 90 days back
+      };
+
+      const events = await nostrService.getEvents(filter);
+      
+      // Filter events that likely contain video content
+      const videoEvents = events.filter((event: NDKEvent) => {
+        // Check for video links in content
+        const hasVideoLink = 
+          event.content.includes('youtube.com') || 
+          event.content.includes('youtu.be') || 
+          event.content.includes('vimeo.com') ||
+          event.content.includes('mp4') ||
+          event.content.includes('video');
+          
+        // Check for video tags
+        const hasVideoTag = event.tags.some((tag: string[]) => 
+          (tag[0] === 'r' && (
+            tag[1].includes('youtube.com') || 
+            tag[1].includes('youtu.be') ||
+            tag[1].includes('vimeo.com') ||
+            tag[1].endsWith('.mp4')
+          )) ||
+          (tag[0] === 't' && tag[1] === 'video')
+        );
+        
+        return hasVideoLink || hasVideoTag;
+      });
+      
+      // Process events to extract relevant video information
+      return videoEvents.slice(0, limit).map((event: NDKEvent) => {
+        // Extract video thumbnail if available
+        const thumbnailTag = event.tags.find((tag: string[]) => tag[0] === 'image' || tag[0] === 'thumbnail');
+        const thumbnail = thumbnailTag ? thumbnailTag[1] : null;
+        
+        // Extract author name
+        const authorProfile = event.author?.profile;
+        const authorName = authorProfile?.displayName || authorProfile?.name || 'Anonymous';
+        
+        return {
+          id: event.id,
+          content: event.content,
+          created_at: event.created_at,
+          pubkey: event.pubkey,
+          authorName,
+          thumbnail
+        };
+      });
+    } catch (error) {
+      console.error('Failed to fetch videos:', error);
+      return [];
+    }
+  };
+
   // Publish a note
   const publishNote = async (content: string, replyTo?: string) => {
     return nostrService.publishNote(content, replyTo);
@@ -435,6 +496,7 @@ export function useNostr(explicitRelayUrls?: string[]) {
     fetchEvent,
     updateProfile,
     subscribeToNotes,
+    fetchVideos,
     publishNote,
     encodePublicKey,
     decodePublicKey,
